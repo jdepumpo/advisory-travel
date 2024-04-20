@@ -6,5 +6,5 @@ options:
   label:
     fly_launch_runtime: rails
   postgresql: true
-  precompile: defer
+  precompile: build
   prepare: false
