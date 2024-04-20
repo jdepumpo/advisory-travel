@@ -1,0 +1,65 @@
+<% content_for :meta_title, "Countries | #{DEFAULT_META["meta_name"]} | #{DEFAULT_META["meta_description"]}" %>
+<h1>Countries</h1>
+
+<%= search_form_for @q, data: { turbo_frame: "search" } do |f| %>
+  <div class="grid grid-cols-2 grid-rows-2 md:grid-cols-4 md:grid-rows-1 gap-3">
+    <div class="relative col-span-2 justify-stretch">
+      <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+        <%= heroicon "magnifying-glass" %>
+      </div>
+      <%= f.text_field :name_cont, class: "search-input p-3 pl-10 text-sm", onkeyup: "search()", placeholder: "Country Name" %>
+    </div>
+    <div class="relative">
+      <div class="flex absolute inset-y-1 left-0 items-center pl-3 pointer-events-none">
+        <%= heroicon "globe-alt" %>
+      </div>
+      <%= f.select :region_eq, @regions, { include_blank: "World" }, { class: "region-input p-3 pl-10 text-sm", onchange: "search()" } %>
+    </div>
+    <div class="relative">
+      <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+        <%= heroicon "flag" %>
+      </div>
+      <%= f.select :advisories_level_eq, [["Normal Precautions", 1], ["Increased Caution", 2], ["Reconsider Travel", 3], ["Do Not Travel", 4]], { include_blank: "All Levels" }, { class: "level-input p-3 pl-10 text-sm", onchange: "search()" } %>
+    </div>
+  </div>
+<% end %>
+
+<%= turbo_frame_tag "search", target: "_top" do %>
+  <div class="mt-8 widetable">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col" class="w-2"><!--Country Flag--></th>
+          <th scope="col"><%= sort_link(@q, :name) %></th>
+          <th scope="col"><%= sort_link(@q, :region) %></th>
+          <th scope="col" class="text-center"><%= sort_link(@q, :advisories_level) %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @countries.each do |country| %>
+          <tr style="cursor: pointer; cursor: hand;" onclick="window.location='<%= country_path(country.alpha2) %>';">
+            <td class="w-2">
+              <%= link_to get_emoji_flag(country.alpha2), country_path(country.alpha2) %>
+            </td>
+            <td>
+              <%= link_to country.name, country_path(country.alpha2), class: "text-amber-900 outline-none font-bold" %>
+            </td>
+            <td>
+              <%= country.region %>
+            </td>
+            <td class="text-center">
+              <% advisory_level = country.advisories.average(:level).to_i %>
+              <span class="px-4 py-2 rounded inline-block <%= advisory_level(advisory_level)[:color] %>">
+                <%= advisory_level(advisory_level)[:name] %>
+              </span>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="text-center mt-10">
+    <%== pagy_nav(@pagy) %>
+  </div>
+<% end %>
